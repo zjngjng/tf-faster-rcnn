@@ -24,11 +24,11 @@ def proposal_layer(rpn_cls_prob, rpn_bbox_pred, im_info, cfg_key, _feat_stride, 
   nms_thresh = cfg[cfg_key].RPN_NMS_THRESH
 
   # Get the scores and bounding boxes
-  scores = rpn_cls_prob[:, :, :, num_anchors:]
-  rpn_bbox_pred = rpn_bbox_pred.reshape((-1, 4))
+  scores = rpn_cls_prob[:, :, :, :, num_anchors:]  # get the scores corresponding to class 1, ie. foreground class
+  rpn_bbox_pred = rpn_bbox_pred.reshape((-1, 6))
   scores = scores.reshape((-1, 1))
   proposals = bbox_transform_inv(anchors, rpn_bbox_pred)
-  proposals = clip_boxes(proposals, im_info[:2])
+  proposals = clip_boxes(proposals, im_info[:3])
 
   # Pick the top region proposals
   order = scores.ravel().argsort()[::-1]

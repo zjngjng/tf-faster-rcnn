@@ -131,6 +131,8 @@ if __name__ == '__main__':
     net = resnetv1(num_layers=152)
   elif args.net == 'mobile':
     net = mobilenetv1()
+  elif args.net == 'res18_3d':
+    net = resnet_3d(num_layers=18)
   else:
     raise NotImplementedError
     
