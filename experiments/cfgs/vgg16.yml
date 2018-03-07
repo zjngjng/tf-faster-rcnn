@@ -10,6 +10,9 @@ TRAIN:
   DISPLAY: 20
   BATCH_SIZE: 256
   SNAPSHOT_PREFIX: vgg16_faster_rcnn
+  USE_FLIPPED: False
+  SCALES: [256]
 TEST:
   HAS_RPN: True
 POOLING_MODE: crop
+DATA_DIR: /home/jingjing/data

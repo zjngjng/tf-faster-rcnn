@@ -13,7 +13,7 @@ from __future__ import print_function
 __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
-
+from datasets.ct_vol import ct_vol
 import numpy as np
 
 # Set up voc_<year>_<split> 
@@ -38,6 +38,12 @@ for year in ['2015']:
   for split in ['test', 'test-dev']:
     name = 'coco_{}_{}'.format(year, split)
     __sets[name] = (lambda split=split, year=year: coco(split, year))
+
+
+
+for split in ['train', 'val']:
+  name = 'vol_{}'.format(split)
+  __sets[name] = (lambda split=split: ct_vol(split))
 
 
 def get_imdb(name):

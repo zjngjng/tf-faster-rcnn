@@ -29,7 +29,7 @@ def parse_args():
   parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
   parser.add_argument('--cfg', dest='cfg_file',
                       help='optional config file',
-                      default=None, type=str)
+                      default='../experiments/cfgs/vgg16.yml', type=str)
   parser.add_argument('--weight', dest='weight',
                       help='initialize with pretrained model weights',
                       type=str)
@@ -52,9 +52,9 @@ def parse_args():
                       help='set config keys', default=None,
                       nargs=argparse.REMAINDER)
 
-  if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
+  #if len(sys.argv) == 1:
+  #  parser.print_help()
+  #  sys.exit(1)
 
   args = parser.parse_args()
   return args

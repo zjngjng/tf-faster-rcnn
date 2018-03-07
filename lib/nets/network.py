@@ -353,9 +353,9 @@ class Network(object):
 
   def create_architecture(self, mode, num_classes, tag=None,
                           anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
-    self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
-    self._im_info = tf.placeholder(tf.float32, shape=[3])
-    self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
+    self._image = tf.placeholder(tf.float32, shape=[1, None, None, None, 1]) # 1*H*W*D*1
+    self._im_info = tf.placeholder(tf.float32, shape=[4]) #height, width, depth, im_scale
+    self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 7])
     self._tag = tag
 
     self._num_classes = num_classes
@@ -381,8 +381,7 @@ class Network(object):
       biases_regularizer = tf.no_regularizer
 
     # list as many types of layers as possible, even if they are not used now
-    with arg_scope([slim.conv2d, slim.conv2d_in_plane, \
-                    slim.conv2d_transpose, slim.separable_conv2d, slim.fully_connected], 
+    with arg_scope([slim.conv3d, slim.conv3d_transpose, slim.fully_connected],
                     weights_regularizer=weights_regularizer,
                     biases_regularizer=biases_regularizer, 
                     biases_initializer=tf.constant_initializer(0.0)): 

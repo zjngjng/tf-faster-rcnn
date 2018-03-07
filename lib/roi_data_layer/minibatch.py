@@ -15,6 +15,7 @@ import numpy.random as npr
 import cv2
 from model.config import cfg
 from utils.blob import prep_im_for_blob, im_list_to_blob
+import nibabel as nib
 
 def get_minibatch(roidb, num_classes):
   """Given a roidb, construct a minibatch sampled from it."""
@@ -41,34 +42,64 @@ def get_minibatch(roidb, num_classes):
   else:
     # For the COCO ground truth boxes, exclude the ones that are ''iscrowd'' 
     gt_inds = np.where(roidb[0]['gt_classes'] != 0 & np.all(roidb[0]['gt_overlaps'].toarray() > -1.0, axis=1))[0]
-  gt_boxes = np.empty((len(gt_inds), 5), dtype=np.float32)
-  gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :] * im_scales[0]
-  gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
-  blobs['gt_boxes'] = gt_boxes
-  blobs['im_info'] = np.array(
-    [im_blob.shape[1], im_blob.shape[2], im_scales[0]],
-    dtype=np.float32)
 
-  return blobs
+  if('depth' in roidb[0]):
+    gt_boxes = np.empty((len(gt_inds), 7), dtype=np.float32)
+    gt_boxes[:, 0:6] = roidb[0]['boxes'][gt_inds, :] * im_scales[0]
+    gt_boxes[:, 6] = roidb[0]['gt_classes'][gt_inds]
+    blobs['gt_boxes'] = gt_boxes
+    blobs['im_info'] = np.array(
+      [im_blob.shape[1], im_blob.shape[2], im_blob.shape[3], im_scales[0]],
+      dtype=np.float32)
+    #blobs:data, gt_boxes, im_info
+    return blobs
+
+  else:
+    gt_boxes = np.empty((len(gt_inds), 5), dtype=np.float32)
+    gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :] * im_scales[0]
+    gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
+    blobs['gt_boxes'] = gt_boxes
+    blobs['im_info'] = np.array(
+      [im_blob.shape[1], im_blob.shape[2], im_scales[0]],
+      dtype=np.float32)
+
+    return blobs
 
 def _get_image_blob(roidb, scale_inds):
   """Builds an input blob from the images in the roidb at the specified
   scales.
   """
-  num_images = len(roidb)
-  processed_ims = []
-  im_scales = []
-  for i in range(num_images):
-    im = cv2.imread(roidb[i]['image'])
-    if roidb[i]['flipped']:
-      im = im[:, ::-1, :]
-    target_size = cfg.TRAIN.SCALES[scale_inds[i]]
-    im, im_scale = prep_im_for_blob(im, cfg.PIXEL_MEANS, target_size,
-                    cfg.TRAIN.MAX_SIZE)
-    im_scales.append(im_scale)
-    processed_ims.append(im)
+  if 'depth' in roidb[0]:
+    num_images = len(roidb)
+    processed_ims = []
+    im_scales = []
+    for i in range(num_images):
+      im = nib.load(roidb[i]['image']).get_data()
+      im_scale = 1.0
+      im_scales.append(im_scale)
+      processed_ims.append(im)
 
-  # Create a blob to hold the input images
-  blob = im_list_to_blob(processed_ims)
+    # Create a blob to hold the input images
+    blob = im_list_to_blob(processed_ims)
 
-  return blob, im_scales
+    return blob, im_scales
+
+  else:
+
+    num_images = len(roidb)
+    processed_ims = []
+    im_scales = []
+    for i in range(num_images):
+      im = cv2.imread(roidb[i]['image'])
+      if roidb[i]['flipped']:
+        im = im[:, ::-1, :]
+      target_size = cfg.TRAIN.SCALES[scale_inds[i]]
+      im, im_scale = prep_im_for_blob(im, cfg.PIXEL_MEANS, target_size,
+                      cfg.TRAIN.MAX_SIZE)
+      im_scales.append(im_scale)
+      processed_ims.append(im)
+
+    # Create a blob to hold the input images
+    blob = im_list_to_blob(processed_ims)
+
+    return blob, im_scales
